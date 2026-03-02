@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPS League Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        epsBlue: '#002147',
+                        epsGold: '#FFCC00',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>.hidden { display: none; }</style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans">
+
+    <nav class="bg-epsBlue p-4 text-white shadow-xl border-b-4 border-epsGold">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-black tracking-tight cursor-pointer flex items-center gap-2" onclick="showPage('home')">
+                <span class="bg-epsGold text-epsBlue px-2 py-1 rounded">EPS</span> LEAGUE STATS
+            </h1>
+            <div id="navControls">
+                <button id="loginBtn" onclick="showPage('login')" class="hover:text-epsGold transition font-bold text-sm uppercase">Admin Login</button>
+                <button id="logoutBtn" onclick="logout()" class="hidden bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition text-sm">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main id="home" class="max-w-6xl mx-auto p-6">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4 border-b-2 border-slate-200 pb-6">
+            <div>
+                <h2 class="text-4xl font-black text-epsBlue uppercase tracking-tighter">Current Season</h2>
+                <p class="text-slate-500 font-medium" id="currentSeasonDisplay">Loading...</p>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2">
+                <h3 class="text-xl font-bold mb-4 text-epsBlue flex items-center uppercase italic">
+                    <span class="w-8 h-1 bg-epsGold mr-2"></span> Match Results
+                </h3>
+                <div id="matchContainer" class="space-y-6"></div>
+            </div>
+            
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-md border-t-4 border-epsBlue overflow-hidden">
+                    <div class="bg-slate-100 p-4 border-b">
+                        <h3 class="font-black text-epsBlue text-center uppercase tracking-widest">Top Scorers</h3>
+                    </div>
+                    <ul id="topScorersList" class="divide-y divide-slate-100"></ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section id="adminDash" class="hidden max-w-4xl mx-auto p-6">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl border border-slate-200">
+            <h2 class="text-3xl font-black mb-8 text-epsBlue text-center uppercase">Add Match Result</h2>
+            
+            <div class="mb-6">
+                <label class="block font-bold text-slate-700 mb-2 uppercase text-xs">Select Season</label>
+                <select id="seasonSelect" class="w-full border-2 border-slate-100 p-3 rounded-xl bg-slate-50 focus:border-epsBlue outline-none transition"></select>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-6">
+                <div class="p-5 bg-blue-50/50 rounded-2xl border border-blue-100">
+                    <h4 class="font-black text-epsBlue mb-4 text-center uppercase tracking-widest underline">Home Team</h4>
+                    <input type="text" id="t1Name" placeholder="Team Name" class="w-full p-3 mb-3 rounded-xl border focus:ring-2 ring-epsBlue outline-none">
+                    <input type="number" id="t1Score" placeholder="Full Time Goals" class="w-full p-3 mb-3 rounded-xl border">
+                    <textarea id="t1Scorers" placeholder="Scorers (One per line)" class="w-full p-3 h-24 rounded-xl border text-sm"></textarea>
+                </div>
+                <div class="p-5 bg-red-50/50 rounded-2xl border border-red-100">
+                    <h4 class="font-black text-epsBlue mb-4 text-center uppercase tracking-widest underline">Away Team</h4>
+                    <input type="text" id="t2Name" placeholder="Team Name" class="w-full p-3 mb-3 rounded-xl border focus:ring-2 ring-epsBlue outline-none">
+                    <input type="number" id="t2Score" placeholder="Full Time Goals" class="w-full p-3 mb-3 rounded-xl border">
+                    <textarea id="t2Scorers" placeholder="Scorers (One per line)" class="w-full p-3 h-24 rounded-xl border text-sm"></textarea>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="p-4 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                    <label class="block font-bold text-epsBlue mb-2 uppercase text-xs">Highlights (Google Drive Link)</label>
+                    <input type="text" id="driveLink" placeholder="Paste G-Drive share link here" class="w-full p-3 rounded-xl border">
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border">
+                    <label class="flex items-center gap-3 font-bold cursor-pointer text-slate-700">
+                        <input type="checkbox" id="isPens" onchange="togglePens()" class="w-5 h-5"> Match decided by penalties?
+                    </label>
+                    <div id="penInput" class="hidden grid grid-cols-2 gap-4 mt-4">
+                        <input type="number" id="t1Pens" placeholder="Home Pens Scored" class="w-full p-3 rounded-xl border">
+                        <input type="number" id="t2Pens" placeholder="Away Pens Scored" class="w-full p-3 rounded-xl border">
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="saveMatch()" class="mt-8 w-full bg-epsBlue hover:bg-slate-800 text-white py-4 rounded-xl font-black text-xl shadow-lg transition transform hover:-translate-y-1 uppercase">Save Match Data</button>
+            <button onclick="showPage('home')" class="w-full mt-4 text-slate-400 font-bold hover:text-epsBlue transition">Cancel</button>
+        </div>
+    </section>
+
+    <section id="login" class="hidden min-h-[80vh] flex items-center justify-center p-6">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border-t-8 border-epsBlue">
+            <h2 class="text-3xl font-black mb-6 text-center text-epsBlue uppercase">Admin Access</h2>
+            <div class="space-y-4">
+                <input type="text" id="uid" class="w-full border-2 p-4 rounded-xl outline-none focus:border-epsGold" placeholder="Username">
+                <input type="password" id="pwd" class="w-full border-2 p-4 rounded-xl outline-none focus:border-epsGold" placeholder="Password">
+                <button onclick="handleLogin()" class="w-full bg-epsBlue text-white py-4 rounded-xl font-black tracking-widest hover:bg-slate-800 transition">VERIFY IDENTITY</button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        let matches = JSON.parse(localStorage.getItem('eps_matches_v1')) || [];
+        let seasons = JSON.parse(localStorage.getItem('eps_seasons')) || ["Season 2026", "Season 2025"];
+        let isAdmin = false;
+
+        function togglePens() {
+            document.getElementById('penInput').classList.toggle('hidden', !document.getElementById('isPens').checked);
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('main, section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+            if(pageId === 'home') renderHome();
+            if(pageId === 'adminDash') updateSeasonDropdown();
+        }
+
+        function handleLogin() {
+            if(document.getElementById('uid').value === 'admin' && document.getElementById('pwd').value === 'eps123') {
+                isAdmin = true;
+                document.getElementById('loginBtn').classList.add('hidden');
+                document.getElementById('logoutBtn').classList.remove('hidden');
+                showPage('adminDash');
+            } else { alert('Wrong Credentials'); }
+        }
+
+        function logout() { isAdmin = false; location.reload(); }
+
+        function updateSeasonDropdown() {
+            const select = document.getElementById('seasonSelect');
+            select.innerHTML = seasons.map(s => `<option value="${s}">${s}</option>`).join('') + `<option value="NEW">➕ Add New Season...</option>`;
+            select.onchange = (e) => {
+                if(e.target.value === 'NEW') {
+                    const name = prompt("Season Name:");
+                    if(name) { seasons.unshift(name); localStorage.setItem('eps_seasons', JSON.stringify(seasons)); updateSeasonDropdown(); }
+                }
+            };
+        }
+
+        function saveMatch() {
+            const matchData = {
+                id: Date.now(),
+                season: document.getElementById('seasonSelect').value,
+                driveLink: document.getElementById('driveLink').value,
+                t1: { name: document.getElementById('t1Name').value, score: document.getElementById('t1Score').value || 0, scorers: document.getElementById('t1Scorers').value.split('\n').filter(s => s.trim()) },
+                t2: { name: document.getElementById('t2Name').value, score: document.getElementById('t2Score').value || 0, scorers: document.getElementById('t2Scorers').value.split('\n').filter(s => s.trim()) },
+                pens: document.getElementById('isPens').checked ? { t1: document.getElementById('t1Pens').value, t2: document.getElementById('t2Pens').value } : null
+            };
+
+            if(!matchData.t1.name || !matchData.t2.name) return alert("Fill team names!");
+            matches.unshift(matchData);
+            localStorage.setItem('eps_matches_v1', JSON.stringify(matches));
+            location.reload();
+        }
+
+        function deleteMatch(id) {
+            if(confirm("Delete match?")) {
+                matches = matches.filter(m => m.id !== id);
+                localStorage.setItem('eps_matches_v1', JSON.stringify(matches));
+                renderHome();
+            }
+        }
+
+        function renderHome() {
+            const container = document.getElementById('matchContainer');
+            const scorerList = document.getElementById('topScorersList');
+            document.getElementById('currentSeasonDisplay').innerText = seasons[0];
+
+            container.innerHTML = matches.map(m => `
+                <div class="bg-white rounded-2xl shadow-sm border-l-8 border-epsBlue p-6 relative group overflow-hidden">
+                    ${isAdmin ? `<button onclick="deleteMatch(${m.id})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 font-bold p-2 transition">Delete</button>` : ''}
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">${m.season}</div>
+                    
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex-1 text-center">
+                            <h4 class="font-black text-epsBlue uppercase text-sm md:text-lg leading-tight">${m.t1.name}</h4>
+                            <div class="text-[10px] text-slate-400 mt-1 italic">${m.t1.scorers.join(', ')}</div>
+                        </div>
+                        
+                        <div class="flex flex-col items-center px-4">
+                            <div class="text-4xl font-black text-epsBlue">${m.t1.score} <span class="text-epsGold font-light">-</span> ${m.t2.score}</div>
+                            ${m.pens ? `<div class="text-[10px] font-bold text-blue-600 uppercase mt-1">(${m.pens.t1} - ${m.pens.t2} pens)</div>` : ''}
+                        </div>
+
+                        <div class="flex-1 text-center">
+                            <h4 class="font-black text-epsBlue uppercase text-sm md:text-lg leading-tight">${m.t2.name}</h4>
+                            <div class="text-[10px] text-slate-400 mt-1 italic">${m.t2.scorers.join(', ')}</div>
+                        </div>
+                    </div>
+
+                    ${m.driveLink ? `
+                        <div class="mt-6 flex justify-center border-t pt-4">
+                            <a href="${m.driveLink}" target="_blank" class="bg-epsBlue text-white text-xs px-6 py-2 rounded-full font-black uppercase tracking-tight hover:bg-epsGold hover:text-epsBlue transition flex items-center gap-2">
+                                🎬 Watch Highlights
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            // SCORERS LOGIC: Grouping by Team Name
+            let scorerData = {};
+            matches.forEach(m => {
+                m.t1.scorers.forEach(name => {
+                    const n = name.trim();
+                    if(!scorerData[n]) scorerData[n] = { goals: 0, team: m.t1.name };
+                    scorerData[n].goals++;
+                });
+                m.t2.scorers.forEach(name => {
+                    const n = name.trim();
+                    if(!scorerData[n]) scorerData[n] = { goals: 0, team: m.t2.name };
+                    scorerData[n].goals++;
+                });
+            });
+
+            const sorted = Object.entries(scorerData).sort((a,b) => b[1].goals - a[1].goals).slice(0, 10);
+            scorerList.innerHTML = sorted.map(([name, data]) => `
+                <li class="flex justify-between items-center p-4 hover:bg-slate-50 transition">
+                    <div>
+                        <div class="font-black text-epsBlue uppercase text-xs">${name}</div>
+                        <div class="text-[10px] font-bold text-epsGold uppercase tracking-tight">${data.team}</div>
+                    </div>
+                    <div class="text-xl font-black text-slate-300">
+                        ${data.goals} <span class="text-[10px] text-slate-400 uppercase">Goals</span>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        renderHome();
+    </script>
+</body>
+</html>
